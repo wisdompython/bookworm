@@ -6,3 +6,4 @@ rag_edit.pdf
 rag.docx
 venv/
 collections/
+telegram/auth.py
