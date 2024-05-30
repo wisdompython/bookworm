@@ -1,0 +1,8 @@
+db.sqlite3
+__pycache__/
+migrations/__pycache__
+bot_src/constants.py
+rag_edit.pdf
+rag.docx
+venv/
+collections/
