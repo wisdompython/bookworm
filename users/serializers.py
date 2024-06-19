@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
 class UserLoginSerializer(serializers.ModelSerializer):
+    favorite_color = models.CharField()
     class Meta:
         model = CustomUser
         fields = ["id", "email", "password"]
@@ -29,6 +30,8 @@ class UserSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
+
+        
         
         new_user = CustomUser.objects.create(
             email = validated_data['email'],

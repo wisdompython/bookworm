@@ -28,6 +28,8 @@ So far, the following features have been implemented:
  - get your bot api_key from [botfather](https://t.me/BotFather)
 
  - run : ``` python manage.py runserver ```
+ - run celery : ``` celery -A study_bot worker -l INFO --pool=eventlet --statedb=study_bot/worker/worker.state```
+ 
  - register via postman on ```http://localhost:8000/register```
  - login to get access token ```http://localhost:8000/login```
  - create collection ```http://localhost:8000/collection/```

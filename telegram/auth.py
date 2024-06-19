@@ -1,72 +1,67 @@
-# import requests
-# apikey = '6542354616:AAGbi0-GcndMZW77y1NxIxCVGdITodFu_Ek'
-# url = f"https://api.telegram.org/bot{apikey}/getChat"
-# #url = f"https://api.telegram.org/bot{apikey}/sendMessage"
-# response = requests.get(url)
-# # response = requests.post(url, data={
-# #     'text':'hi', 'chat_id':6738668801
-# # })
-
-# # print(response.json().keys())
-# from llama_index.core.extractors import (
-#     SummaryExtractor,
-#     QuestionsAnsweredExtractor,
-#     TitleExtractor,
-#     KeywordExtractor,
-#     BaseExtractor,
-# )
-# from llama_index.extractors.entity import EntityExtractor
-# from llama_index.core.node_parser import TokenTextSplitter
-# from llama_index.core import Settings
-# from llama_index.embeddings.gemini import GeminiEmbedding
-# from rag import *
-# gemini_key = "AIzaSyAwIN2d4UunKuegUkdSWSz_IauYSUjR1no"
+import requests
+from http import *
+default_api_url = "http://localhost:8000"
+import base64
 
 
-# text_splitter = TokenTextSplitter(
-#     separator=" ", chunk_size=512, chunk_overlap=128
-# )
+class BotClient:
 
-
-
-# Settings.llm = gemini_model
-# class CustomExtractor(BaseExtractor):
-#     def extract(self, nodes):
-#         metadata_list = [
-#             {
-#                 "custom": (
-#                     node.metadata["document_title"]
-#                     + "\n"
-#                     + node.metadata["excerpt_keywords"]
-#                 )
-#             }
-#             for node in nodes
-#         ]
-
-        
-#         return metadata_list
-
-
-# extractors = [
-#     TitleExtractor(nodes=3, llm=gemini_model),
-#     #QuestionsAnsweredExtractor(questions=3, llm=gemini_model),
+    def __init__(self, email=None, password=None, confirm_password=None, bot=None):
+        self.email = email
+        self.password = password
+        self.confirm_password = confirm_password
+        self.access_token = None
+        self.refresh_token=None
+        self.headers = None
+        self.is_authenticated = None
+        self.bot = bot
     
-#     #EntityExtractor(prediction_threshold=0.5, device='cpu',label_entities=False),
-#     #SummaryExtractor(summaries=["prev", "self"], llm=gemini_model),
-#     #KeywordExtractor(keywords=10, llm=gemini_model),
-#     # CustomExtractor()
-# ]
-# import random
+   
 
-# random.seed(42)
-# # comment out to run on all documents
-# # 100 documents takes about 5 minutes on CPU
-# #docs = SimpleDirectoryReader(input_files=['./docs/business_Art.pdf'], file_extractor=extractor).load_data()
-# #documents = random.sample(docs, 1)
+    def submit_email(self,message):
+        self.email = message.text
+        print(self.email)
+        msg = self.bot.reply_to(message,"Password:")
+        self.bot.register_next_step_handler(msg, self.set_password)
 
-# transformations = [text_splitter] + extractors
-# pipeline = IngestionPipeline(transformations=transformations)
-# docs = SimpleDirectoryReader(input_files=['./docs/business_Art.pdf']).load_data()
+    def set_password(self,message):
+        self.password = message.text
+        msg = self.bot.reply_to(message, "confirm password:")
+        self.bot.register_next_step_handler(msg, self.submit_confirm_password)
 
-# pipeline.run(documents=docs)
+    def submit_password(self,message):
+        self.email = message.text
+        msg = self.bot.reply_to(message, "password")
+        self.bot.register_next_step_handler(msg, self.exec_login)
 
+    def submit_confirm_password(self, message):
+        self.confirm_password = message.text
+        create_user = self.register(endpoint='register')
+        msg = self.bot.reply_to(message, create_user)
+
+
+    def exec_login(self, message):
+        self.password = message.text
+        response = self.login(endpoint='getapikey')
+        self.bot.reply_to(message, f"Here is your api key {response.json()}")
+    
+    def register(self, endpoint, api_url=default_api_url):      
+        response = requests.post(
+            url=f"{api_url}/{endpoint}/", data={
+                "email":self.email, "password":self.password, "confirm_password":self.confirm_password
+            }
+        )
+
+        return response
+    
+    def login(self, endpoint, api_url=default_api_url):
+        print(endpoint)
+        url = f"{api_url}/{endpoint}/"
+        print(url)
+        data =f"{self.email}:{self.password}"
+       
+        response = requests.get(
+            url=url, auth=(self.email, self.password)
+        )
+
+        return response
