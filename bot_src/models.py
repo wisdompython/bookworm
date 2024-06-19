@@ -20,6 +20,14 @@ class Bot(models.Model):
     bot_name = models.CharField(max_length=300)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
+class BotInstance(models.Model):
+    bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
+    task_id = models.TextField(null=True)
+
+    def __str__(self):
+        return f"id :{self.id}"
+    
+
 class TelegramGroup(models.Model):
     group_name = models.CharField(max_length=300)
     group_id = models.IntegerField(unique=True, null=True)
@@ -27,10 +35,10 @@ class TelegramGroup(models.Model):
     private = models.BooleanField(default=False)
     group = models.BooleanField(default=False)
 
+
 class Collection(models.Model):
     id  = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    group = models.ForeignKey(TelegramGroup, on_delete=models.DO_NOTHING, null=True)
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
@@ -44,5 +52,5 @@ class Collection(models.Model):
 class Conversation(models.Model):
     bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
-    group = models.ForeignKey(TelegramGroup, on_delete=models.CASCADE)
+    group = models.ForeignKey(TelegramGroup, on_delete=models.CASCADE, null=True)
     

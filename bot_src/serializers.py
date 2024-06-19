@@ -29,29 +29,11 @@ class DataSourceSerializer(serializers.Serializer):
     )
 
     
-class TelegramGroupSerializer(serializers.Serializer):
-    group_name = serializers.CharField(max_length=300)
-    group_id = serializers.IntegerField()
-
+class TelegramGroupSerializer(serializers.ModelSerializer):
     
-
-    def create(self, validated_data):
-        print(validated_data)
-        if not 'group_id' in validated_data.keys():
-            group = TelegramGroup.objects.create(
-                owner = self.context['request'].user,
-                group_name = validated_data['group_name'],
-            )
-
-            return group
-        
-        group = TelegramGroup.objects.create(
-                owner = self.context['request'].user,
-                group_name = validated_data['group_name'],
-                group_id = validated_data['group_id']
-            )
-
-        return group
+    class Meta:
+        model = TelegramGroup
+        fields = ('group_id','group_name', 'private','group')
 
     
 
@@ -63,6 +45,10 @@ class RegisterBotSerializer(serializers.ModelSerializer):
 
 class StartBotSerializer(serializers.Serializer):
     collection_title = serializers.CharField(max_length=300)
+    bot_id = serializers.IntegerField()
+    as_admin = serializers.BooleanField(default=False)
 
+class StopBotSerializer(serializers.Serializer):
+   bot_instance_id = serializers.IntegerField()
         
         

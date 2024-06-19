@@ -64,7 +64,7 @@ List of names on the first page are authors of the research, Most pages do NOT h
 gemini_model = Gemini(model="models/gemini-pro", api_key=gemini_key)
 Settings.llm = gemini_model
 parser = LlamaParse(
-    api_key='llx-7oXlXwTPw7HnOiWyzfHcOFpjxBBC5e5pPpfqVSED9UyUPSwk',
+    api_key=llama_parse_key,
     result_type='markdown',
     parsing_instruction=parsing_instruction
 ) 
@@ -75,7 +75,7 @@ def load_collection(collection_id):
 
 
     parser = LlamaParse(
-    api_key='llx-7oXlXwTPw7HnOiWyzfHcOFpjxBBC5e5pPpfqVSED9UyUPSwk',
+    api_key=llama_parse_key,
     result_type='markdown',
     parsing_instruction=parsing_instruction
 )
@@ -111,60 +111,58 @@ def load_collection(collection_id):
 
     return index
 
-def check_conversation(collection_id,bot_id, chat_id):
-        
-    collection = Collection.objects.get(id=collection_id)
-    bot = Bot.objects.get(id=bot_id)
-    chat = TelegramGroup.objects.get(group_id=chat_id)
 
-    conversation = Conversation.objects.filter(collection=collection, bot=bot, group=chat)
-
-    if conversation.exists():
-        conversation = Conversation.objects.get(collection=collection, bot=bot, group=chat)
-        return conversation
 
 def load_index(collection_id, query):
-    collection = Collection.objects.get(id=collection_id)
-    collection_path = Path(settings.BASE_DIR)/f"collections/{collection.title}/index"
+    try :
+        collection = Collection.objects.get(id=collection_id)
+        collection_path = Path(settings.BASE_DIR)/f"collections/{collection.title}/index"
 
-    directory_path = Path(f"{settings.BASE_DIR}/collections/{collection.title}/")
+        directory_path = Path(f"{settings.BASE_DIR}/collections/{collection.title}/")
 
-    if not collection_path.exists():
-        os.mkdir(collection_path)
-        index = load_collection(collection_id=collection_id)
+        if not collection_path.exists():
+            os.mkdir(collection_path)
+            index = load_collection(collection_id=collection_id)
+            query_engine = index.as_chat_engine(system_prompt=query_wrapper_prompt)
+            response = query_engine.chat(query)
+            return response.response
+
+        storage_context = StorageContext.from_defaults(persist_dir=collection_path)
+        index = load_index_from_storage(storage_context, index_id=collection.title)
         query_engine = index.as_chat_engine(system_prompt=query_wrapper_prompt)
+
         response = query_engine.chat(query)
         return response.response
-
-    storage_context = StorageContext.from_defaults(persist_dir=collection_path)
-    index = load_index_from_storage(storage_context, index_id=collection.title)
-    query_engine = index.as_chat_engine(system_prompt=query_wrapper_prompt)
-
-    response = query_engine.chat(query)
-    return response.response
+    except Exception as e:
+        print(e)
 
 def check_conversation(query, collection_id=None, bot_id=None, chat_id=None):
+    try:
+        if not collection_id or not bot_id or not chat_id:
 
-    if not collection_id or not bot_id or not chat_id:
+            collection = Collection.objects.get(title = 'Business Article Collection')
 
-        collection = Collection.objects.get(title = 'Business Article Collection')
+            return load_index(query=query, collection_id=collection.id)
 
-        return load_index(query=query, collection_id=collection.id)
+        collection = Collection.objects.get(id=collection_id)
+        bot = Bot.objects.get(id=bot_id)
+        chat = TelegramGroup.objects.get(group_id=chat_id)
 
-    collection = Collection.objects.get(id=collection_id)
-    bot = Bot.objects.get(id=bot_id)
-    chat = TelegramGroup.objects.get(group_id=chat_id)
+        conversation = Conversation.objects.filter(collection=collection, bot=bot, group=chat)
 
-    conversation = Conversation.objects.filter(collection=collection, bot=bot, group=chat)
+        if conversation.exists():
+            conversation = Conversation.objects.get(collection=collection, bot=bot, group=chat)
 
-    if conversation.exists():
-        conversation = Conversation.objects.get(collection=collection, bot=bot, group=chat)
+            collection = load_index(
+                collection_id=conversation.collection.id,
+                query=query
+            )
 
-        collection = load_index(
-            collection_id=conversation.collection.id,
-            query=query
-        )
+            return collection
+        else : # use some base collection
+            pass
+    except Exception as e:
+        print(e)
 
-        return collection
-    else : # use some base collection
-        pass
+def add_document_to_index(collection_id, document):
+    pass

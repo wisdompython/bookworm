@@ -1,6 +1,11 @@
 from bot_src.models import *
 from users.models import *
 
+
+def check_if_user_exists(email):
+
+    return CustomUser.objects.filter(email=email).exists()
+
 def register_group_to_model(tg_id, tg_name, owner, chat_type):
 
     user = CustomUser.objects.get(email=owner)
