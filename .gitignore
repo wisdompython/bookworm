@@ -7,4 +7,4 @@ rag.docx
 venv/
 collections/
 telegram/auth.py
-telegram/constants
+telegram/constants.py
