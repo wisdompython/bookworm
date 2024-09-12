@@ -3,13 +3,14 @@ from users.models import *
 import os
 import uuid
 
+
 def get_upload_path(instance, filename):
       return os.path.join('collections', instance.collection.title, filename)
 
 # many do
 class DataSource(models.Model):
     document_name = models.CharField(max_length=200)
-    collection = models.ForeignKey('Collection', on_delete=models.CASCADE, related_name='collection_data')
+    collection = models.ForeignKey('Collection', on_delete=models.CASCADE, related_name='collection_data', null=True)
     file = models.FileField(upload_to=get_upload_path)
 
     def __str__(self):
@@ -29,12 +30,14 @@ class BotInstance(models.Model):
     
 
 class TelegramGroup(models.Model):
+    chat_choices = [
+        ("private", "private"),
+        ("group", "group")
+    ]
     group_name = models.CharField(max_length=300)
     group_id = models.IntegerField(unique=True, null=True)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    private = models.BooleanField(default=False)
-    group = models.BooleanField(default=False)
-
+    chat_type = models.CharField(max_length=30, choices=chat_choices)
 
 class Collection(models.Model):
     id  = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
@@ -50,7 +53,6 @@ class Collection(models.Model):
     
 
 class Conversation(models.Model):
-    bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
     group = models.ForeignKey(TelegramGroup, on_delete=models.CASCADE, null=True)
     

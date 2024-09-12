@@ -31,12 +31,13 @@ class RegisterUserView(APIView):
             return Response(user_info, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class GetAPIKey(APIView):
     permission_classes =[IsAuthenticated]
     authentication_classes = [BasicAuthentication, JWTAuthentication]
+    
     def get(self, request):
         token, created = Token.objects.get_or_create(user=request.user)
-        print(token)
         return Response(token.key)
 
     

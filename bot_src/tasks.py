@@ -4,13 +4,24 @@ from telegram.bot import *
 from telegram.auth import *
 from study_bot.celery import app
 default_collection ='cc08b5a5-e898-4f66-9215-21b7fd5c6f0c'
+
+
+bookworm_object = None
+
+
+# @shared_task(bind=True)
+# def execute_bookworm(self):
+#     global bookworm_object
+#     bookworm_object = BookWorm().run()
+
+
+    
 @shared_task(bind=True)
 def execute_bot(self,api_key=None, collection_id=None, email=None, bot_id=None):
-    run = BotHandler(
-            api_key=api_key,
-            collection_id=collection_id,
+    run = BookWorm(
+            #collection_id=collection_id,
             email=email,
-            bot_id = bot_id
+            bot_id = bot_id,
             )
     run.run()
 
@@ -19,16 +30,6 @@ def execute_bot(self,api_key=None, collection_id=None, email=None, bot_id=None):
     print(run.task_id)
     return run.task_id
 
-@shared_task(bind=True)
-def start_admin_bot(self,api_key,collection_id=default_collection, bot_id=None):
-    admin_bot = AdminBot(
-    api_key=api_key,
-    collection_id=collection_id,
-    bot_id=bot_id).run()
-
-    admin_bot.task_id = self.request.id
-
-    return admin_bot.task_id
 
 @shared_task(bind=True )
 def stop_admin_bot(self, task_id):

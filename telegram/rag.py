@@ -9,7 +9,6 @@ from llama_index.core.indices import MultiModalVectorStoreIndex
 from llama_index.core.schema import ImageDocument
 from llama_index.llms.gemini import Gemini
 from llama_index.core import PromptTemplate
-import chromadb
 from llama_index.core import Settings
 from llama_index.embeddings.gemini import GeminiEmbedding
 from llama_index.core.node_parser import (
@@ -63,12 +62,12 @@ List of names on the first page are authors of the research, Most pages do NOT h
 
 gemini_model = Gemini(model="models/gemini-pro", api_key=gemini_key)
 Settings.llm = gemini_model
-parser = LlamaParse(
-    api_key=llama_parse_key,
-    result_type='markdown',
-    parsing_instruction=parsing_instruction
-) 
-extractor = {".pdf":parser}
+# parser = LlamaParse(
+#     api_key=llama_parse_key,
+#     result_type='markdown',
+#     parsing_instruction=parsing_instruction
+# ) 
+
 
 
 def load_collection(collection_id):
@@ -76,10 +75,11 @@ def load_collection(collection_id):
 
     parser = LlamaParse(
     api_key=llama_parse_key,
-    result_type='markdown',
     parsing_instruction=parsing_instruction
 )
+    extractor = {".pdf":parser}
     collection = Collection.objects.get(id=collection_id)
+
     collection_path = Path(settings.BASE_DIR)/f"collections/{collection.title}/index"
 
     directory_path = Path(f"{settings.BASE_DIR}/collections/{collection.title}/")
@@ -114,35 +114,32 @@ def load_collection(collection_id):
 
 
 def load_index(collection_id, query):
-    try :
-        collection = Collection.objects.get(id=collection_id)
-        collection_path = Path(settings.BASE_DIR)/f"collections/{collection.title}/index"
 
-        directory_path = Path(f"{settings.BASE_DIR}/collections/{collection.title}/")
+    collection = Collection.objects.get(id=collection_id)
+    collection_path = Path(settings.BASE_DIR)/f"collections/{collection.title}/index"
 
-        if not collection_path.exists():
-            os.mkdir(collection_path)
-            index = load_collection(collection_id=collection_id)
-            query_engine = index.as_chat_engine(system_prompt=query_wrapper_prompt)
-            response = query_engine.chat(query)
-            return response.response
+    directory_path = Path(f"{settings.BASE_DIR}/collections/{collection.title}/")
 
-        storage_context = StorageContext.from_defaults(persist_dir=collection_path)
-        index = load_index_from_storage(storage_context, index_id=collection.title)
+    if not collection_path.exists(): 
+        index = load_collection(collection_id=collection_id)
         query_engine = index.as_chat_engine(system_prompt=query_wrapper_prompt)
-
         response = query_engine.chat(query)
         return response.response
-    except Exception as e:
-        print(e)
+
+    storage_context = StorageContext.from_defaults(persist_dir=collection_path)
+    index = load_index_from_storage(storage_context, index_id=collection.title)
+    query_engine = index.as_chat_engine(system_prompt=query_wrapper_prompt)
+
+    response = query_engine.chat(query)
+    return response.response
+    
 
 def check_conversation(query, collection_id=None, bot_id=None, chat_id=None):
     try:
         if not collection_id or not bot_id or not chat_id:
-
-            collection = Collection.objects.get(title = 'Business Article Collection')
-
-            return load_index(query=query, collection_id=collection.id)
+            collection = Collection.objects.get(title ='test')
+            result = load_index(query=query, collection_id=collection.id)
+            return result
 
         collection = Collection.objects.get(id=collection_id)
         bot = Bot.objects.get(id=bot_id)

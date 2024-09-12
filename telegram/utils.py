@@ -2,6 +2,7 @@ from bot_src.models import *
 from users.models import *
 
 
+
 def check_if_user_exists(email):
 
     return CustomUser.objects.filter(email=email).exists()
