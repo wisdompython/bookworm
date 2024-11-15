@@ -8,3 +8,5 @@ venv/
 collections/
 telegram/auth.py
 telegram/constants.py
+.env
+venv/

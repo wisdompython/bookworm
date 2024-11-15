@@ -55,7 +55,7 @@ class BotAPIViewSet(ModelViewSet):
     serializer_class = RegisterBotSerializer
     
     @action(methods=['get'], permission_classes=[IsAuthenticated], detail=False)
-    def create_conversation(self, request):
+    def query(self, request):
         pass
         
 

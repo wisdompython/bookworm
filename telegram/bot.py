@@ -1,11 +1,12 @@
-import telebot
+import os
 from .rag import *
 from .utils import *
 from .bot_client import BotClient
-from bot_src.constants import *
+
+api_key = os.environ.get("TG_KEY")
 
 class BookWorm(BotClient):
-    def __init__(self, email=None, bot_id=None, token=default_apikey):
+    def __init__(self, email=None, bot_id=None, token=api_key):
         super().__init__(token)
         self.owner_email = email
         self.bot_id = bot_id
@@ -35,6 +36,7 @@ class BookWorm(BotClient):
 
         @self.message_handler(commands=['query'])
         def bookworm(message):
+            # should send an api call, not tightly couple this way
             response = check_conversation(query=message.text)
             self.reply_to(message, response)
 
@@ -95,7 +97,6 @@ class BookWorm(BotClient):
     
     def plus_docs(self, message):
         if message.text.lower() == "yes":
-
             msg = self.reply_to(message, "Document:")
             self.register_next_step_handler(msg,self.add_document)
         
@@ -104,11 +105,7 @@ class BookWorm(BotClient):
 
         else:
             self.reply_to(msg, "the correct options are yes or no")
-            
-
-    
     def get_document(self, document):
-        
         file = self.get_file(document.file_id)
         print(file.file_path)
 

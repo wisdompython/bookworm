@@ -1,7 +1,6 @@
 
 import requests
 import telebot
-from bot_src.constants import *
 
 default_api_url = "http://localhost:8000"
 
@@ -62,11 +61,9 @@ class BotClient(telebot.TeleBot):
             url=f"{default_api_url}/collection/",
             data=data
         )
+        return response
 
         
-        
-        
-
     def get_api_key(self, api_url=default_api_url, endpoint="getapikey"):
         url = f"{api_url}/{endpoint}/"
         response = requests.get(

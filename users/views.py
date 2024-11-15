@@ -22,7 +22,6 @@ class RegisterUserView(APIView):
         if serializer.is_valid():
             if CustomUser.objects.filter(email=request.data['email']).exists():
                 return Response({'error': 'Email already registered'}, status=status.HTTP_400_BAD_REQUEST)
-                
             new_user = serializer.save()
             user_info = {
                 "id":new_user.id,

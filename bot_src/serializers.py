@@ -23,8 +23,6 @@ class DataSourceSerializer(serializers.Serializer):
                 collection = collection,
                 file=file
             )
-    
-
 class CreateCollectionSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=300)
     description = serializers.CharField(max_length=1000)
@@ -33,16 +31,9 @@ class CreateCollectionSerializer(serializers.Serializer):
         collection = Collection.objects.create(
             title= validated_data['title'],
             description = validated_data['description'],
-            owner = self.context['request'].user
-            
+            owner = self.context['request'].user           
         )
-
         return collection
-    
-
-
-
-    
 class TelegramGroupSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         default=serializers.CurrentUserDefault(), queryset = CustomUser.objects.all()
